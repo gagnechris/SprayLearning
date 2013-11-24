@@ -5,7 +5,6 @@ import spray.routing._
 import spray.http._
 import spray.http.MediaTypes._
 import spray.routing.Directive.pimpApply
-import spray.routing.directives.CompletionMagnet.fromObject
 import com.example.model.Customer
 import spray.httpx.Json4sSupport
 import org.json4s.Formats
@@ -91,7 +90,7 @@ trait CustomerService extends HttpService with Json4sSupport with UserAuthentica
 
   //http://kufli.blogspot.com/2013/08/sprayio-rest-service-api-versioning.html
   val Version = PathMatcher("""v([0-9]+)""".r)
-    .flatMap {
+    .hflatMap {
       case vString :: HNil => {
         try Some(Integer.parseInt(vString) :: HNil)
         catch {

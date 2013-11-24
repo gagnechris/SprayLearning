@@ -1,7 +1,8 @@
 package com.example.service
 
-import spray.routing.authentication.Authentication
-import spray.routing.authentication.ContextAuthenticator
+import spray.routing.authentication.{Authentication, ContextAuthenticator}
+import spray.http._
+import HttpHeaders.`WWW-Authenticate`
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,7 +19,7 @@ trait UserAuthentication {
   def authenticateUser: ContextAuthenticator[User] = {
     ctx =>
       {
-        //get username and password from the url        
+        //get username and password from the url
         val usr = ctx.request.uri.query.get("usr").get
         val pwd = ctx.request.uri.query.get("pwd").get
 
@@ -27,11 +28,13 @@ trait UserAuthentication {
   }
 
   private def doAuth(userName: String, password: String): Future[Authentication[User]] = {
-    //here you can call database or a web service to authenticate the user    
+    val challenge = `WWW-Authenticate`(HttpChallenge("basic", "Realm"))
+
+    //here you can call database or a web service to authenticate the user
     Future {
       Either.cond(password == configpassword && userName == configusername,
         User(userName = userName, token = java.util.UUID.randomUUID.toString),
-        AuthenticationFailedRejection("CredentialsRejected"))
+        AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List(challenge)))
     }
   }
 }
